@@ -15,19 +15,25 @@ func NewValue(val interface{}) *Value {
 }
 
 func (this *Value) Get() <-chan interface{} {
-	// Create a unique channel for this communication
+	// Create a unique channel for this communication, buffer of one so send
+	// do not block (unless unread yet).
 	c := make(chan interface{}, 1)
 	this.chans = append(this.chans, c)
+
 	// Send the current value, since Set() will not be called for this value-channel
 	// combination.
 	if this.setOnce {
 		c <- this.v
 	}
+
 	return c
 }
 
 func (this *Value) Set(val interface{}) {
 	this.v = val
+	if !this.setOnce {
+		this.setOnce = true
+	}
 	broadcastValue(this.chans, this.v)
 }
 
