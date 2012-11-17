@@ -27,7 +27,7 @@ func evaluate(recv chan (<-chan interface{}), f func(interface{})) {
 	var chans = make([]<-chan interface{}, 1)
 	for {
 		select {
-		// Try to receive new values
+		// See if new values got bound
 		case vc := <-recv:
 			chans = append(chans, vc)
 		default:

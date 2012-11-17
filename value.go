@@ -2,13 +2,16 @@ package goreact
 
 import ()
 
+// Make it so a zero-Value is a valid, usable Value that has never been set (
+// no initial value)
 type Value struct {
-	v     interface{}
-	chans []chan interface{}
+	v       interface{}
+	chans   []chan interface{}
+	setOnce bool
 }
 
 func NewValue(val interface{}) *Value {
-	return &Value{val, make([]chan interface{}, 0, 1)}
+	return &Value{val, make([]chan interface{}, 0, 1), true}
 }
 
 func (this *Value) Get() <-chan interface{} {
@@ -17,7 +20,9 @@ func (this *Value) Get() <-chan interface{} {
 	this.chans = append(this.chans, c)
 	// Send the current value, since Set() will not be called for this value-channel
 	// combination.
-	c <- this.v
+	if this.setOnce {
+		c <- this.v
+	}
 	return c
 }
 

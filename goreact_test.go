@@ -7,13 +7,14 @@ import (
 )
 
 func TestBasicBehavior(t *testing.T) {
-	i := 0
-	v := NewValue(i)
+	var v Value
+
 	f := func(val interface{}) {
 		fmt.Printf("Eval=%v...\n", val)
 	}
-	NewContext(f, v)
-	for i = 1; i < 5; i++ {
+	NewContext(f, &v)
+
+	for i := 1; i <= 5; i++ {
 		time.Sleep(time.Second)
 		v.Set(i)
 	}
