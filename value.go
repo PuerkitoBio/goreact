@@ -1,13 +1,23 @@
 package goreact
 
+import ()
+
 type Value struct {
 	v     interface{}
 	chans []chan interface{}
 }
 
+func NewValue(val interface{}) *Value {
+	return &Value{val, make([]chan interface{}, 0, 1)}
+}
+
 func (this *Value) Get() <-chan interface{} {
-	c := make(chan interface{})
+	// Create a unique channel for this communication
+	c := make(chan interface{}, 1)
 	this.chans = append(this.chans, c)
+	// Send the current value, since Set() will not be called for this value-channel
+	// combination.
+	c <- this.v
 	return c
 }
 
@@ -16,6 +26,7 @@ func (this *Value) Set(val interface{}) {
 	broadcastValue(this.chans, this.v)
 }
 
+/*
 // Implement the Closer interface
 func (this *Value) Close() error {
 	for _, c := range this.chans {
@@ -30,9 +41,10 @@ func (this *Value) Inject(ctx *Context) {
 		ctx.Bind(this)
 	}
 }
+*/
 
 func broadcastValue(chans []chan interface{}, val interface{}) {
-	// TODO:  Naive implementation, what if it blocks?  
+	// TODO:  Naive implementation, what if it blocks? 
 	for _, c := range chans {
 		c <- val
 	}
