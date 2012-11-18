@@ -2,8 +2,13 @@ package goreact
 
 import ()
 
-// Make it so a zero-Value is a valid, usable Value that has never been set (
-// no initial value)
+type ValueProvider interface {
+	Get() <-chan interface{}
+	Set(interface{})
+}
+
+// Make it so a zero-Value is a valid, usable Value that has never been set
+// (no initial value)
 type Value struct {
 	v       interface{}
 	chans   []chan interface{}

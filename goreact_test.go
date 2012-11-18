@@ -9,8 +9,9 @@ import (
 func TestBasicBehavior(t *testing.T) {
 	var v Value
 
-	f := func(val interface{}) {
+	f := func(val interface{}) interface{} {
 		fmt.Printf("Eval=%v...\n", val)
+		return nil
 	}
 	NewContext(f, &v)
 

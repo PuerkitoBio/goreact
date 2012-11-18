@@ -5,25 +5,32 @@ import (
 )
 
 type Context struct {
-	f func(interface{})
+	Value
+	f func(interface{}) interface{}
 	c chan (<-chan interface{})
 }
 
-func NewContext(f func(interface{}), v *Value) *Context {
-	ctx := &Context{f, make(chan (<-chan interface{}), 1)}
+func NewContext(f func(interface{}) interface{}, v ValueProvider) *Context {
+	ctx := new(Context)
+
+	// Initialize
+	ctx.f = f
+	ctx.c = make(chan (<-chan interface{}), 1)
 	ctx.Bind(v)
+
 	// Launch goroutine to evaluate function
-	go evaluate(ctx.c, f)
+	go evaluate(ctx.c, f, ctx)
+
 	return ctx
 }
 
-func (this *Context) Bind(v *Value) {
+func (this *Context) Bind(v ValueProvider) {
 	if v != nil {
 		this.c <- v.Get()
 	}
 }
 
-func evaluate(recv chan (<-chan interface{}), f func(interface{})) {
+func evaluate(recv chan (<-chan interface{}), f func(interface{}) interface{}, retVal ValueProvider) {
 	var chans = make([]<-chan interface{}, 1)
 	for {
 		select {
@@ -38,7 +45,7 @@ func evaluate(recv chan (<-chan interface{}), f func(interface{})) {
 				case v, ok := <-c:
 					if ok {
 						// Channel not closed, run function
-						f(v)
+						retVal.Set(f(v))
 					}
 				default:
 					// Continue with next channel
